@@ -15,11 +15,9 @@ export default function MethodAccordion() {
           </AccordionTrigger>
           <AccordionContent className="space-y-4 text-white/75">
             The project owner identified a possible change in how confidence,
-            control and connection were scored. The exported data does not show
-            a clear expansion from a 1–5 to a 1–9 range; later records appear
-            compressed, with few or no high-end scores after late 2025. For that
-            reason, the dashboard avoids over-precise claims and treats the
-            values as directional indicators supported by participant voice.
+            control and connection were scored. For that reason, the dashboard
+            avoids over-precise claims and treats the values as directional
+            indicators supported by participant voice.
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-2">
@@ -54,7 +52,7 @@ export default function MethodAccordion() {
             <p>
               Reflection videos are analysed against three evidence-based needs:
               competence, autonomy, and relatedness. In the dashboard these are
-              translated as confidence, feeling in control, and feeling
+              translated as feeling confident, feeling in control, and feeling
               connected.
             </p>
             <p>
@@ -65,11 +63,10 @@ export default function MethodAccordion() {
             </p>
             <p>
               The project team has also identified a possible scoring-scale
-              issue: guidance may have changed from a 1–5 to a 1–9 scale, but
-              the exported data do not show a clean expansion in the score
-              range. After late 2025, the data appear to contain fewer high-end
-              scores, suggesting possible compression, calibration drift, prompt
-              effects, or export/post-processing changes.
+              issue. But the exported data do not show a clean expansion in the
+              score range. After late 2025, the data appear to contain fewer
+              high-end scores, suggesting possible compression, calibration
+              drift, prompt effects, or export/post-processing changes.
             </p>
             <p>
               For that reason, the dashboard avoids treating the scores as exact

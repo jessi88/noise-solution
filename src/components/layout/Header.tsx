@@ -12,9 +12,9 @@ export default function Header() {
         </h1>
 
         <p className="mt-5 max-w-7xl text-base leading-snug font-normal text-white/75 sm:mt-6 sm:text-lg md:text-xl lg:text-2xl">
-          This dashboard keeps the human story first. Through session journeys,
-          plain-English measures, and participant voices, it shows what change
-          looks and sounds like.
+          This dashboard keeps the human story first. It combines session
+          journeys, participant voices, and reflective measures to explore how
+          experiences change over time.
         </p>
       </div>
     </header>
