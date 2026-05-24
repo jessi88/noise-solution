@@ -1,5 +1,6 @@
 import * as d3 from "d3"
-import { useState } from "react"
+import { useRef, useState } from "react"
+import { useDimensions } from "@/hooks/useDimensions"
 import type { DashboardDataRow } from "@/hooks/useDashboardData"
 import { useInView } from "@/hooks/useInView"
 
@@ -13,25 +14,21 @@ const metricSeries: {
   key: MetricKey
   label: string
   color: string
-  base: number
 }[] = [
   {
     key: "confidence",
-    label: "Confidence",
+    label: "Feeling confident",
     color: "var(--color-acid)",
-    base: 115,
   },
   {
     key: "control",
     label: "Feeling in control",
     color: "var(--color-violet)",
-    base: 180,
   },
   {
     key: "connection",
     label: "Feeling connected",
     color: "var(--color-white)",
-    base: 245,
   },
 ]
 
@@ -58,41 +55,45 @@ function sessionRowsByNumber(rows: DashboardDataRow[]) {
     .slice(0, 24)
 }
 
-function SoundCard({
-  children,
-  highlight = false,
-}: {
-  children: React.ReactNode
-  highlight?: boolean
-}) {
+function SoundCard({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className={`rounded-3xl border ${
-        highlight ? "border-acid/70" : "border-white/20"
-      } bg-white/4 p-6 text-white`}
+      className={`rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6`}
     >
       {children}
     </div>
   )
 }
 
+function shortLabel(key: MetricKey, label: string, width: number) {
+  if (width >= 640) return label
+  if (key === "confidence") return "Confidence"
+  if (key === "control") return "Control"
+  return "Connected"
+}
+
 function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
-  const { ref, isInView } = useInView<HTMLDivElement>()
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const { width: containerWidth } = useDimensions(containerRef)
+  const { ref: viewRef, isInView } = useInView<HTMLDivElement>()
 
   const [tooltip, setTooltip] = useState<{
-    x: number
-    y: number
+    xPct: number
+    yPct: number
     label: string
     color: string
   } | null>(null)
 
-  const width = 920
-  const height = width < 640 ? 280 : 360
-  const pad = width < 640 ? 28 : 42
+  const hasMeasured = containerWidth > 0
+  const width = Math.max(containerWidth, 320)
+  const height = width < 640 ? 280 : width < 900 ? 320 : 360
 
-  const tickStep = width < 640 ? 4 : 3
+  const bases = [height * 0.32, height * 0.52, height * 0.72]
+
+  const pad = width < 640 ? 34 : 42
+  const tickStep = width < 480 ? 4 : width < 720 ? 3 : 2
   const tickFontSize = width < 640 ? 10 : 13
-  const axisFontSize = width < 640 ? 11 : 13
+  const axisFontSize = width < 640 ? 10 : 13
 
   const data = sessionRowsByNumber(rows)
 
@@ -100,169 +101,194 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
     pad + i * ((width - pad * 2) / Math.max(1, data.length - 1))
 
   return (
-    <div ref={ref}>
+    <div
+      ref={(node) => {
+        containerRef.current = node
+        viewRef.current = node
+      }}
+    >
       <SoundCard>
-        <p className="text-lg font-semibold">
+        <p className="text-base font-semibold sm:text-lg">
           Programme waveform: confidence, control, and connection across
           sessions
         </p>
-        <div className="relative mt-4">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            className="mt-4 h-auto w-full rounded-3xl bg-black/20"
-            role="img"
-            aria-label="Programme waveform showing outcome journeys"
-          >
-            <defs>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="3.5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
 
-            {metricSeries.map((series, seriesIndex) => {
-              const top: string[] = []
-              const bottom: string[] = []
+        {hasMeasured ? (
+          <div className="relative mt-4">
+            <svg
+              viewBox={`0 0 ${width} ${height}`}
+              className="h-auto w-full rounded-3xl bg-black/20"
+              role="img"
+              aria-label="Programme waveform showing outcome journeys"
+            >
+              <defs>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3.5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
 
-              data.forEach((row, i) => {
-                const value = row[series.key] ?? 0
-                const amp = 8 + (value / 9) * 40
-                const phase = Math.sin(i * 0.9) * 8
+              {metricSeries.map((series, seriesIndex) => {
+                const base = bases[seriesIndex]
+                const top: string[] = []
+                const bottom: string[] = []
 
-                top.push(`${x(i)},${series.base - amp + phase}`)
-                bottom.unshift(`${x(i)},${series.base + amp + phase}`)
-              })
-
-              const linePoints = data
-                .map((row, i) => {
+                data.forEach((row, i) => {
                   const value = row[series.key] ?? 0
-                  const y =
-                    series.base - (value - 4.5) * 11 + Math.sin(i * 0.9) * 8
+                  const y = base - (value - 4.5) * 11
+                  const amp = 18 + (value / 9) * 14
 
-                  return `${x(i)},${y}`
+                  top.push(`${x(i)},${y - amp}`)
+                  bottom.unshift(`${x(i)},${y + amp}`)
                 })
-                .join(" ")
 
-              return (
-                <g key={series.key}>
-                  <path
-                    d={`M ${top.join(" L ")} L ${bottom.join(" L ")} Z`}
-                    fill={series.color}
-                    opacity="0.14"
-                  />
-
-                  <polyline
-                    className={
-                      isInView
-                        ? "programme-wave-line programme-wave-line-animate"
-                        : "programme-wave-line"
-                    }
-                    points={linePoints}
-                    fill="none"
-                    stroke={series.color}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    filter="url(#glow)"
-                    style={{
-                      animationDelay: `${seriesIndex * 250}ms`,
-                    }}
-                  />
-
-                  <text
-                    x={pad}
-                    y={series.base - 54}
-                    fill={series.color}
-                    fontSize={width < 640 ? "12" : "15"}
-                    fontWeight="700"
-                  >
-                    {series.label}
-                  </text>
-
-                  {data.map((row, i) => {
+                const linePoints = data
+                  .map((row, i) => {
                     const value = row[series.key] ?? 0
-                    const y =
-                      series.base - (value - 4.5) * 11 + Math.sin(i * 0.9) * 8
+                    const y = base - (value - 4.5) * 11
+                    return `${x(i)},${y}`
+                  })
+                  .join(" ")
 
-                    return (
-                      <circle
-                        key={`${series.key}-${row.session}`}
-                        cx={x(i)}
-                        cy={y}
-                        r="10"
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => {
-                          setTooltip({
-                            x: x(i),
-                            y,
-                            label: `${series.label} · session ${row.session} · ${value.toFixed(1)} / 9`,
-                            color: series.color,
-                          })
-                        }}
-                        onMouseLeave={() => setTooltip(null)}
-                      />
-                    )
-                  })}
-                </g>
-              )
-            })}
+                return (
+                  <g key={series.key}>
+                    <path
+                      d={`M ${top.join(" L ")} L ${bottom.join(" L ")} Z`}
+                      fill={series.color}
+                      opacity="0.14"
+                    />
 
-            {data.map((row, i) =>
-              i % tickStep === 0 ? (
-                <g key={row.session}>
-                  <line
-                    x1={x(i)}
-                    x2={x(i)}
-                    y1={height - 60}
-                    y2={height - 50}
-                    stroke="rgba(255,255,255,.35)"
-                  />
-                  <text
-                    x={x(i)}
-                    y={height - 27}
-                    textAnchor="middle"
-                    fill="rgba(255,255,255,.65)"
-                    fontSize={tickFontSize}
-                  >
-                    {row.session}
-                  </text>
-                </g>
-              ) : null
+                    <polyline
+                      className={
+                        isInView
+                          ? "programme-wave-line programme-wave-line-animate"
+                          : "programme-wave-line"
+                      }
+                      points={linePoints}
+                      fill="none"
+                      stroke={series.color}
+                      strokeWidth={width < 640 ? "2.5" : "3.5"}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      filter="url(#glow)"
+                      style={{ animationDelay: `${seriesIndex * 250}ms` }}
+                    />
+
+                    <text
+                      x={pad}
+                      y={base - 54}
+                      fill={series.color}
+                      fontSize={width < 640 ? "11" : "15"}
+                      fontWeight="700"
+                    >
+                      {shortLabel(series.key, series.label, width)}
+                    </text>
+
+                    {data.map((row, i) => {
+                      const value = row[series.key] ?? 0
+                      const y = base - (value - 4.5) * 11
+                      const rawXPct = (x(i) / width) * 100
+                      const rawYPct = (y / height) * 100
+
+                      return (
+                        <circle
+                          key={`${series.key}-${row.session}`}
+                          cx={x(i)}
+                          cy={y}
+                          r={width < 640 ? "8" : "10"}
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() => {
+                            setTooltip({
+                              xPct: Math.max(12, Math.min(88, rawXPct)),
+                              yPct: rawYPct,
+                              label: `${shortLabel(
+                                series.key,
+                                series.label,
+                                width
+                              )} · session ${row.session} · ${value.toFixed(
+                                1
+                              )} / 9`,
+                              color: series.color,
+                            })
+                          }}
+                          onMouseLeave={() => setTooltip(null)}
+                        />
+                      )
+                    })}
+                  </g>
+                )
+              })}
+
+              <line
+                x1={pad}
+                x2={width - pad}
+                y1={height - 34}
+                y2={height - 34}
+                stroke="rgba(255,255,255,.18)"
+                strokeWidth="1"
+              />
+
+              {data.map((row, i) =>
+                i % tickStep === 0 ? (
+                  <g key={row.session}>
+                    <line
+                      x1={x(i)}
+                      x2={x(i)}
+                      y1={height - 34}
+                      y2={height - 24}
+                      stroke="rgba(255,255,255,.35)"
+                    />
+
+                    <text
+                      x={x(i)}
+                      y={height - 14}
+                      textAnchor="middle"
+                      fill="rgba(255,255,255,.65)"
+                      fontSize={tickFontSize}
+                    >
+                      {row.session}
+                    </text>
+                  </g>
+                ) : null
+              )}
+
+              <text
+                x={pad}
+                y={height + 18}
+                textAnchor="start"
+                fill="rgba(255,255,255,.45)"
+                fontSize={axisFontSize}
+                letterSpacing="0.08em"
+              >
+                PARTICIPANT SESSION NUMBER
+              </text>
+            </svg>
+
+            {tooltip && (
+              <div
+                className="pointer-events-none absolute max-w-55 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:max-w-none sm:whitespace-nowrap"
+                style={{
+                  left: `${tooltip.xPct}%`,
+                  top: `${tooltip.yPct}%`,
+                  transform: "translate(-50%, -130%)",
+                  color: tooltip.color,
+                }}
+              >
+                {tooltip.label}
+              </div>
             )}
+          </div>
+        ) : (
+          <div className="mt-4 h-80 w-full rounded-3xl bg-white/5" />
+        )}
 
-            <text
-              x={pad}
-              y={height - 6}
-              textAnchor="start"
-              fill="rgba(255,255,255,.45)"
-              fontSize={axisFontSize}
-              letterSpacing="0.08em"
-            >
-              PARTICIPANT SESSION NUMBER
-            </text>
-          </svg>
-          {tooltip && (
-            <div
-              className="pointer-events-none absolute max-w-55 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:max-w-none sm:whitespace-nowrap"
-              style={{
-                left: tooltip.x,
-                top: tooltip.y - 44,
-                transform: "translateX(-50%)",
-                color: tooltip.color,
-              }}
-            >
-              {tooltip.label}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-5 flex justify-between gap-6 text-sm font-medium text-white/70">
-          <span>Each wave follows a plain-English outcome.</span>
-          <span>Higher waves mean stronger average scores.</span>
+        <div className="mt-5 px-0 text-sm font-medium text-white/60 sm:px-10">
+          Each wave reflects confidence, control, or connection over time.
+          Higher waves indicate stronger average scores.
         </div>
       </SoundCard>
     </div>
@@ -295,7 +321,7 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
 
   return (
     <div>
-      <SoundCard highlight>
+      <SoundCard>
         <p className="text-lg font-black">Impact equaliser</p>
 
         <div ref={viewRef} className="mt-8 flex justify-center gap-8">
@@ -493,7 +519,7 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
     .slice(0, 5)
 
   return (
-    <SoundCard highlight>
+    <SoundCard>
       <p className="text-lg font-black">
         Participant mixtape: journeys as tracks
       </p>
