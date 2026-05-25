@@ -140,10 +140,11 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
                 data.forEach((row, i) => {
                   const value = row[series.key] ?? 0
                   const y = base - (value - 4.5) * 11
-                  const amp = 18 + (value / 9) * 14
+                  const amp = 8 + (value / 9) * 40
+                  const wobble = Math.sin(i * 0.9) * 8
 
-                  top.push(`${x(i)},${y - amp}`)
-                  bottom.unshift(`${x(i)},${y + amp}`)
+                  top.push(`${x(i)},${y - amp + wobble}`)
+                  bottom.unshift(`${x(i)},${y + amp + wobble}`)
                 })
 
                 const linePoints = data
@@ -685,6 +686,7 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
 }
 
 function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
+  const { ref: viewRef, isInView } = useInView<HTMLDivElement>()
   const journeys = Array.from(d3.group(rows, (d) => d.UIN))
     .map(([uin, values]) => {
       const sorted = values
@@ -700,93 +702,184 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
       }
     })
     .filter((d): d is NonNullable<typeof d> => d !== null)
-    .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
-    .slice(0, 5)
+
+  const increased = journeys
+    .filter((d) => d.change > 0.15)
+    .sort((a, b) => b.change - a.change)
+    .slice(0, 2)
+
+  const steady = journeys
+    .filter((d) => d.change >= -0.15 && d.change <= 0.15)
+    .sort((a, b) => b.rows.length - a.rows.length)
+    .slice(0, 2)
+
+  const decreased = journeys
+    .filter((d) => d.change < -0.15)
+    .sort((a, b) => a.change - b.change)
+    .slice(0, 2)
+
+  const featuredJourneys = [...increased, ...steady, ...decreased]
+
+  const [tooltip, setTooltip] = useState<{
+    activeTrack: string
+    xPct: number
+    yPct: number
+    label: string
+    align: "left" | "center" | "right"
+  } | null>(null)
 
   return (
-    <SoundCard>
-      <p className="text-lg font-black">
-        Participant mixtape: journeys as tracks
-      </p>
+    <div ref={viewRef}>
+      <SoundCard>
+        <p className="text-base font-semibold sm:text-lg">
+          Participant mixtape: journeys as tracks
+        </p>
 
-      <div className="mt-5 space-y-4">
-        {journeys.map((journey) => {
-          const width = 420
-          const height = 88
-          const pad = 12
-          const mid = height / 2
+        <div className="mt-5 space-y-4">
+          {featuredJourneys.map((journey, index) => {
+            const width = 420
+            const height = 88
+            const pad = 12
+            const mid = height / 2
 
-          const x = (i: number) =>
-            pad + i * ((width - pad * 2) / Math.max(1, journey.rows.length - 1))
+            const x = (i: number) =>
+              pad +
+              i * ((width - pad * 2) / Math.max(1, journey.rows.length - 1))
 
-          const top: string[] = []
-          const bottom: string[] = []
+            const top: string[] = []
+            const bottom: string[] = []
 
-          journey.rows.forEach((row, i) => {
-            const s = score(row)
-            const amp = 6 + (s / 9) * 26
-            const wobble = Math.sin(i * 1.4) * 5
-
-            top.push(`${x(i)},${mid - amp + wobble}`)
-            bottom.unshift(`${x(i)},${mid + amp + wobble}`)
-          })
-
-          const linePoints = journey.rows
-            .map((row, i) => {
+            journey.rows.forEach((row, i) => {
               const s = score(row)
-              return `${x(i)},${mid - (s - 4.5) * 6}`
+              const amp = 6 + (s / 9) * 26
+              const wobble = Math.sin(i * 1.4) * 5
+
+              top.push(`${x(i)},${mid - amp + wobble}`)
+              bottom.unshift(`${x(i)},${mid + amp + wobble}`)
             })
-            .join(" ")
 
-          const direction =
-            journey.change > 0.15
-              ? "rising track"
-              : journey.change < -0.15
-                ? "complex track"
-                : "steady track"
+            const linePoints = journey.rows
+              .map((row, i) => {
+                const s = score(row)
+                return `${x(i)},${mid - (s - 4.5) * 7}`
+              })
+              .join(" ")
 
-          return (
-            <div
-              key={String(journey.uin)}
-              className="grid grid-cols-[130px_1fr] items-center gap-4"
-            >
-              <div>
-                <p className="font-black text-acid">
-                  Participant {String(journey.uin).slice(-4)}
-                </p>
-                <p className="text-sm font-bold text-white/70">
-                  {direction}
-                  <br />
-                  {journey.rows.length} sessions · {journey.change.toFixed(1)}{" "}
-                  change
-                </p>
+            const direction =
+              journey.change > 0.15
+                ? "rising track"
+                : journey.change < -0.15
+                  ? "complex track"
+                  : "steady track"
+
+            return (
+              <div
+                key={String(journey.uin)}
+                className="grid gap-3 rounded-2xl border border-white/10 bg-white/4 p-3 sm:grid-cols-[130px_1fr] sm:items-center sm:gap-4 sm:border-0 sm:bg-transparent sm:p-0"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-acid sm:text-base">
+                    Participant {String(journey.uin).slice(-4)}
+                  </p>
+
+                  <p className="mt-1 text-xs font-medium text-white/65 sm:text-sm">
+                    {direction}
+                    <br />
+                    {journey.rows.length} sessions ·
+                    {journey.change >= 0 ? "Δ" : "▽"}{" "}
+                    {journey.change > 0 ? "+" : ""}
+                    {journey.change.toFixed(1)}
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <svg
+                    viewBox={`0 0 ${width} ${height}`}
+                    className="h-auto w-full"
+                  >
+                    <path
+                      d={`M ${top.join(" L ")} L ${bottom.join(" L ")} Z`}
+                      fill="var(--color-acid)"
+                      opacity="0.14"
+                    />
+
+                    <polyline
+                      className={
+                        isInView
+                          ? "programme-wave-line programme-wave-line-animate"
+                          : "programme-wave-line"
+                      }
+                      points={linePoints}
+                      fill="none"
+                      stroke="var(--color-acid)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      style={{ animationDelay: `${index * 160}ms` }}
+                    />
+                    {journey.rows.map((row, i) => {
+                      const s = score(row)
+                      const y = mid - (s - 4.5) * 6
+                      const rawXPct = (x(i) / width) * 100
+                      const rawYPct = (y / height) * 100
+
+                      return (
+                        <circle
+                          key={`${journey.uin}-${row.sessionNumber}-${i}`}
+                          cx={x(i)}
+                          cy={y}
+                          r="9"
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() =>
+                            setTooltip({
+                              activeTrack: String(journey.uin),
+                              xPct: Math.max(6, Math.min(94, rawXPct)),
+                              yPct: Math.max(18, Math.min(86, rawYPct)),
+                              label: `Participant ${String(journey.uin).slice(-4)} · session ${
+                                row.sessionNumber
+                              } · ${s.toFixed(1)} / 9`,
+                              align:
+                                rawXPct < 25
+                                  ? "left"
+                                  : rawXPct > 75
+                                    ? "right"
+                                    : "center",
+                            })
+                          }
+                          onMouseLeave={() => setTooltip(null)}
+                        />
+                      )
+                    })}
+                  </svg>
+                  {tooltip?.activeTrack === String(journey.uin) && (
+                    <div
+                      className="pointer-events-none absolute w-56 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal text-acid shadow-2xl sm:w-auto sm:whitespace-nowrap"
+                      style={{
+                        left: `${tooltip.xPct}%`,
+                        top: `${tooltip.yPct}%`,
+                        transform:
+                          tooltip.align === "left"
+                            ? "translate(0, -130%)"
+                            : tooltip.align === "right"
+                              ? "translate(-100%, -130%)"
+                              : "translate(-50%, -130%)",
+                      }}
+                    >
+                      {tooltip.label}
+                    </div>
+                  )}
+                </div>
               </div>
+            )
+          })}
+        </div>
 
-              <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full">
-                <path
-                  d={`M ${top.join(" L ")} L ${bottom.join(" L ")} Z`}
-                  fill="var(--color-acid)"
-                  opacity="0.18"
-                />
-                <polyline
-                  className="waveform-glow"
-                  points={linePoints}
-                  fill="none"
-                  stroke="var(--color-acid)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-          )
-        })}
-      </div>
-
-      <p className="mt-5 text-base leading-relaxed font-bold text-white/70">
-        Each mini-wave is one anonymised participant's journey. The form makes
-        difference visible without ranking young people.
-      </p>
-    </SoundCard>
+        <p className="mt-5 text-sm leading-relaxed font-medium text-white/60 sm:text-base">
+          Each mini-wave is one anonymised participant journey. The form makes
+          movement visible without ranking young people.
+        </p>
+      </SoundCard>
+    </div>
   )
 }
 
