@@ -33,7 +33,7 @@ const quoteThemes: QuoteTheme[] = [
   },
   {
     value: "Most Positive Sentence Competence",
-    label: "Confidence",
+    label: "Feeling confident",
     scoreKey: "confidence",
   },
   {
@@ -108,7 +108,7 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
               <SelectItem
                 key={item.value}
                 value={item.value}
-                className="text-base font-black"
+                className="text-base font-medium data-[highlighted]:font-medium data-[state=checked]:font-medium"
               >
                 {item.label}
               </SelectItem>
@@ -143,7 +143,9 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
 
             {item.score !== null && (
               <p className="mt-5 text-sm font-medium text-white/55 sm:text-base">
-                Related score: {item.score.toFixed(1)} / 9
+                {activeTheme.scoreKey === "sessionRating"
+                  ? `Session rating: ${item.score.toFixed(1)} / 10`
+                  : `Related score: ${item.score.toFixed(1)} / 9`}
               </p>
             )}
           </div>
