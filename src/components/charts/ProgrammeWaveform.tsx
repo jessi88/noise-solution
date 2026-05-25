@@ -887,15 +887,15 @@ function OrbitalScore({
   rows,
   metric,
   title,
-  description,
   color,
 }: {
   rows: DashboardDataRow[]
   metric: MetricKey
   title: string
-  description: string
   color: string
 }) {
+  const { ref, isInView } = useInView<HTMLDivElement>()
+
   const values = rows
     .map((d) => d[metric])
     .filter((v): v is number => typeof v === "number")
@@ -909,72 +909,79 @@ function OrbitalScore({
   const width = 300
   const height = 260
   const cx = 150
-  const cy = 126
+  const cy = 100
 
   return (
-    <SoundCard>
-      <svg viewBox={`0 0 ${width} ${height}`} className="mx-auto">
-        {bins.map((count, i) => {
-          const angle = (-90 + i * 40) * (Math.PI / 180)
-          const r1 = 42
-          const r2 = 68 + (count / max) * 74
-
-          const x1 = cx + Math.cos(angle) * r1
-          const y1 = cy + Math.sin(angle) * r1
-          const x2 = cx + Math.cos(angle) * r2
-          const y2 = cy + Math.sin(angle) * r2
-
-          return (
-            <g key={i}>
-              <line
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
-                stroke={color}
-                strokeWidth="9"
-                strokeLinecap="round"
-                opacity="0.9"
-              />
-              <text
-                x={cx + Math.cos(angle) * (r2 + 18)}
-                y={cy + Math.sin(angle) * (r2 + 18) + 4}
-                textAnchor="middle"
-                fill="rgba(255,255,255,.62)"
-                fontSize="11"
-              >
-                {i + 1}
-              </text>
-            </g>
-          )
-        })}
-
-        <circle
-          cx={cx}
-          cy={cy}
-          r="38"
-          fill="rgba(255,255,255,.04)"
-          stroke="rgba(255,255,255,.18)"
-        />
-
-        <text
-          x={cx}
-          y={cy + 6}
-          textAnchor="middle"
-          fill={color}
-          fontSize="26"
-          fontWeight="900"
+    <div ref={ref}>
+      <SoundCard>
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="mx-auto h-auto w-full max-w-75"
         >
-          {mean(values).toFixed(1)}
-        </text>
-      </svg>
+          {bins.map((count, i) => {
+            const angle = (-90 + i * 40) * (Math.PI / 180)
+            const r1 = 42
+            const r2 = 68 + (count / max) * 58
 
-      <h3 className="text-xl font-black">{title}</h3>
+            const x1 = cx + Math.cos(angle) * r1
+            const y1 = cy + Math.sin(angle) * r1
+            const x2 = cx + Math.cos(angle) * r2
+            const y2 = cy + Math.sin(angle) * r2
 
-      <p className="mt-3 text-base leading-relaxed font-bold text-white/70">
-        {description}
-      </p>
-    </SoundCard>
+            return (
+              <g key={i}>
+                <line
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={color}
+                  strokeWidth="9"
+                  strokeLinecap="round"
+                  opacity="0.9"
+                  className={
+                    isInView ? "orbit-spoke orbit-spoke-animate" : "orbit-spoke"
+                  }
+                  style={{ animationDelay: `${i * 70}ms` }}
+                />
+                <text
+                  x={cx + Math.cos(angle) * (r2 + 18)}
+                  y={cy + Math.sin(angle) * (r2 + 18) + 4}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,.62)"
+                  fontSize="12"
+                >
+                  {i + 1}
+                </text>
+              </g>
+            )
+          })}
+
+          <circle
+            cx={cx}
+            cy={cy}
+            r="38"
+            fill="rgba(255,255,255,.04)"
+            stroke="rgba(255,255,255,.18)"
+          />
+
+          <text
+            x={cx}
+            y={cy + 6}
+            textAnchor="middle"
+            fill={color}
+            fontSize="26"
+            fontWeight="700"
+          >
+            {mean(values).toFixed(1)}
+          </text>
+        </svg>
+
+        <h3 className="text-center text-lg font-semibold sm:text-xl">
+          {title}
+        </h3>
+      </SoundCard>
+    </div>
   )
 }
 
@@ -995,8 +1002,7 @@ export default function ProgrammeWaveform({ rows }: ProgrammeWaveformProps) {
         <OrbitalScore
           rows={rows}
           metric="confidence"
-          title="Confidence"
-          description="A circular “sound ring” showing how confidence scores are distributed across sessions."
+          title="Feeling confident"
           color="var(--color-acid)"
         />
 
@@ -1004,7 +1010,6 @@ export default function ProgrammeWaveform({ rows }: ProgrammeWaveformProps) {
           rows={rows}
           metric="control"
           title="Feeling in control"
-          description="The ring shows variation without labelling lower scores as failure."
           color="var(--color-violet)"
         />
 
@@ -1012,10 +1017,13 @@ export default function ProgrammeWaveform({ rows }: ProgrammeWaveformProps) {
           rows={rows}
           metric="connection"
           title="Feeling connected"
-          description="A relational measure visualised as resonance rather than a league table."
           color="var(--color-white)"
         />
       </div>
+      <p className="mt-5 text-sm leading-relaxed font-medium text-white/60 sm:text-base">
+        Each orbit shows how scores are distributed across sessions. Longer
+        spokes indicate scores that appeared more often.
+      </p>
     </div>
   )
 }

@@ -108,7 +108,7 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
               <SelectItem
                 key={item.value}
                 value={item.value}
-                className="text-base font-medium data-[highlighted]:font-medium data-[state=checked]:font-medium"
+                className="text-base font-medium data-highlighted:font-medium data-[state=checked]:font-medium"
               >
                 {item.label}
               </SelectItem>

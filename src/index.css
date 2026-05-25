@@ -329,6 +329,21 @@ svg:has(.journey-dot[data-series="connection"]:hover)
   animation: constellation-dot-in 520ms ease-out both;
 }
 
+.orbit-spoke {
+  stroke-dasharray: 180;
+  stroke-dashoffset: 180;
+}
+
+.orbit-spoke-animate {
+  animation: orbit-spoke-draw 700ms ease-out forwards;
+}
+
+@keyframes orbit-spoke-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* =========================================================
    ACCESSIBILITY
 ========================================================= */
