@@ -286,10 +286,10 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
           <div className="mt-4 h-80 w-full rounded-3xl bg-white/5" />
         )}
 
-        <div className="mt-5 px-0 text-sm font-medium text-white/60 sm:px-10">
+        <p className="mt-5 text-sm font-medium text-white/60">
           Each wave reflects confidence, control, or connection over time.
           Higher waves indicate stronger average scores.
-        </div>
+        </p>
       </SoundCard>
     </div>
   )
@@ -298,7 +298,6 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
 function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
   const { ref: viewRef, isInView } = useInView<HTMLDivElement>()
 
-  const barWidth = 64
   const gap = 8
 
   const values = [
@@ -322,13 +321,16 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
   return (
     <div>
       <SoundCard>
-        <p className="text-lg font-black">Impact equaliser</p>
+        <p className="text-base font-semibold sm:text-lg">Impact equaliser</p>
 
-        <div ref={viewRef} className="mt-8 flex justify-center gap-8">
+        <div ref={viewRef} className="mt-8 flex justify-center gap-4 sm:gap-8">
           {values.map((item) => (
-            <div key={item.label} className="text-center">
+            <div
+              key={item.label}
+              className="flex flex-col items-center text-center"
+            >
               <div
-                className="flex flex-col-reverse"
+                className="flex flex-col-reverse items-center"
                 style={{ gap: `${gap}px` }}
               >
                 {Array.from({ length: 9 }, (_, i) => {
@@ -339,12 +341,11 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
                       key={`${i}-${isInView}`}
                       className={
                         isInView
-                          ? "equaliser-bar h-4 rounded-full"
-                          : "h-4 rounded-full"
+                          ? "equaliser-bar h-3 w-10 rounded-full sm:h-4 sm:w-16"
+                          : "h-3 w-10 rounded-full sm:h-4 sm:w-16"
                       }
                       style={
                         {
-                          width: `${barWidth}px`,
                           background: item.color,
                           opacity: isInView ? undefined : lit ? 0.95 : 0.12,
                           "--bar-opacity": lit ? 0.95 : 0.12,
@@ -356,18 +357,23 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
                 })}
               </div>
 
-              <p className="mt-4 text-sm font-black">{item.label}</p>
+              <p className="mt-4 text-xs font-semibold sm:text-sm">
+                {item.label}
+              </p>
 
-              <p className="text-xl font-black" style={{ color: item.color }}>
+              <p
+                className="text-lg font-semibold sm:text-xl"
+                style={{ color: item.color }}
+              >
                 {item.value.toFixed(1)}
               </p>
             </div>
           ))}
         </div>
 
-        <p className="mt-8 text-base leading-relaxed font-bold text-white/70">
-          A music-inspired view of the headline scores. It avoids false
-          precision and makes the balance between outcomes easy to grasp.
+        <p className="mt-5 text-sm font-medium text-white/60">
+          A music-inspired view of the average scores, showing the balance
+          between confidence, control, and connection.
         </p>
       </SoundCard>
     </div>
