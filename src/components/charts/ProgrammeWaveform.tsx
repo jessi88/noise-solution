@@ -82,6 +82,7 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
     yPct: number
     label: string
     color: string
+    align: "left" | "center" | "right"
   } | null>(null)
 
   const hasMeasured = containerWidth > 0
@@ -190,8 +191,6 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
                     {data.map((row, i) => {
                       const value = row[series.key] ?? 0
                       const y = base - (value - 4.5) * 11
-                      const rawXPct = (x(i) / width) * 100
-                      const rawYPct = (y / height) * 100
 
                       return (
                         <circle
@@ -202,17 +201,25 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
                           fill="transparent"
                           className="cursor-pointer"
                           onMouseEnter={() => {
+                            const rawXPct = (x(i) / width) * 100
+                            const rawYPct = (y / height) * 100
+
                             setTooltip({
-                              xPct: Math.max(12, Math.min(88, rawXPct)),
-                              yPct: rawYPct,
-                              label: `${shortLabel(
-                                series.key,
-                                series.label,
-                                width
-                              )} · session ${row.session} · ${value.toFixed(
-                                1
-                              )} / 9`,
+                              xPct:
+                                width < 640
+                                  ? Math.max(6, Math.min(94, rawXPct))
+                                  : rawXPct,
+                              yPct: Math.max(14, Math.min(86, rawYPct)),
+                              label: `${shortLabel(series.key, series.label, width)} · session ${
+                                row.session
+                              } · ${value.toFixed(1)} / 9`,
                               color: series.color,
+                              align:
+                                rawXPct < 25
+                                  ? "left"
+                                  : rawXPct > 75
+                                    ? "right"
+                                    : "center",
                             })
                           }}
                           onMouseLeave={() => setTooltip(null)}
@@ -270,11 +277,16 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
 
             {tooltip && (
               <div
-                className="pointer-events-none absolute max-w-55 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:max-w-none sm:whitespace-nowrap"
+                className="pointer-events-none absolute w-56 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:w-auto sm:whitespace-nowrap"
                 style={{
                   left: `${tooltip.xPct}%`,
                   top: `${tooltip.yPct}%`,
-                  transform: "translate(-50%, -130%)",
+                  transform:
+                    tooltip.align === "left"
+                      ? "translate(0, -130%)"
+                      : tooltip.align === "right"
+                        ? "translate(-100%, -130%)"
+                        : "translate(-50%, -130%)",
                   color: tooltip.color,
                 }}
               >
@@ -286,7 +298,7 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
           <div className="mt-4 h-80 w-full rounded-3xl bg-white/5" />
         )}
 
-        <p className="mt-5 text-sm font-medium text-white/60">
+        <p className="mt-4 text-sm leading-relaxed font-medium text-white/60 sm:text-base">
           Each wave reflects confidence, control, or connection over time.
           Higher waves indicate stronger average scores.
         </p>
@@ -371,7 +383,7 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
           ))}
         </div>
 
-        <p className="mt-5 text-sm font-medium text-white/60">
+        <p className="mt-4 text-sm leading-relaxed font-medium text-white/60 sm:text-base">
           A music-inspired view of the average scores, showing the balance
           between confidence, control, and connection.
         </p>
@@ -380,9 +392,42 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
   )
 }
 
+function shortOutcomeLabel(key: string, width: number) {
+  if (width >= 640) {
+    if (key === "confidence") return "Confidence strongest"
+    if (key === "control") return "Control strongest"
+    return "Connection strongest"
+  }
+
+  if (key === "confidence") return "Confidence"
+  if (key === "control") return "Control"
+  return "Connected"
+}
+
+function tooltipOutcomeLabel(key: string | undefined, width: number) {
+  if (key === "confidence") return width < 640 ? "Confidence" : "confidence"
+  if (key === "control") return width < 640 ? "Control" : "control"
+  return width < 640 ? "Connected" : "connection"
+}
+
 function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
-  const width = 760
-  const height = 390
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const { width: containerWidth } = useDimensions(containerRef)
+  const { ref: viewRef, isInView } = useInView<HTMLDivElement>()
+
+  const [tooltip, setTooltip] = useState<{
+    xPct: number
+    yPct: number
+    label: string
+    color: string
+    align: "left" | "center" | "right"
+  } | null>(null)
+
+  const hasMeasured = containerWidth > 0
+  const width = Math.max(containerWidth, 320)
+  const height = width < 640 ? 300 : width < 900 ? 360 : 410
+
+  const sampleLimit = width < 640 ? 70 : 140
 
   const sample = rows
     .filter(
@@ -390,14 +435,22 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
         d.sessionNumber !== null &&
         typeof d["Most Positive Sentence Overall"] === "string"
     )
-    .slice(0, 140)
+    .slice(0, sampleLimit)
 
   const pad = {
-    l: width < 640 ? 36 : 48,
-    r: 24,
+    l: width < 720 ? 40 : 58,
+    r: width < 640 ? 16 : 24,
     t: 24,
-    b: 44,
+    b: width < 640 ? 58 : 68,
   }
+
+  const xTickStep = width < 480 ? 4 : width < 720 ? 3 : width < 1100 ? 2 : 1
+  const xTicks = Array.from(
+    new Set(sample.map((d) => d.sessionNumber).filter(Boolean))
+  ).filter((_, i) => i % xTickStep === 0)
+  const axisY = height - 52
+  const showYAxisTitle = width >= 720
+  const tickLabelY = height - 28
 
   const maxSession = d3.max(sample, (d) => d.sessionNumber ?? 1) ?? 1
 
@@ -408,97 +461,223 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
     height - pad.b - (value / 9) * (height - pad.t - pad.b)
 
   return (
-    <div>
+    <div
+      ref={(node) => {
+        containerRef.current = node
+        viewRef.current = node
+      }}
+    >
       <SoundCard>
-        <p className="text-lg font-black">Constellation of voices</p>
+        <p className="text-base font-semibold sm:text-lg">
+          Constellation of voices
+        </p>
 
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="mt-4 h-auto w-full"
-          role="img"
-          aria-label="Constellation of voice-linked sessions"
-        >
-          <defs>
-            <filter id="dotGlow">
-              <feGaussianBlur stdDeviation="2.4" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
+        {hasMeasured ? (
+          <div className="relative mt-4">
+            <svg
+              viewBox={`0 0 ${width} ${height}`}
+              className="h-auto w-full"
+              role="img"
+              aria-label="Constellation of voice-linked sessions"
+            >
+              <defs>
+                <filter id="dotGlow">
+                  <feGaussianBlur stdDeviation="2.4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
 
-          {[1, 3, 5, 7, 9].map((tick) => (
-            <g key={tick}>
+              {[1, 3, 5, 7, 9].map((tick) => (
+                <g key={tick}>
+                  <line
+                    x1={pad.l}
+                    x2={width - pad.r}
+                    y1={y(tick)}
+                    y2={y(tick)}
+                    stroke="rgba(255,255,255,.12)"
+                  />
+
+                  <text
+                    x={pad.l - 10}
+                    y={y(tick) + 4}
+                    textAnchor="end"
+                    fill="rgba(255,255,255,.58)"
+                    fontSize={width < 640 ? 10 : 13}
+                  >
+                    {tick}
+                  </text>
+                </g>
+              ))}
+
+              {sample.map((d, i) => {
+                const s = score(d)
+                const radius =
+                  width < 640
+                    ? 2.5 + Math.max(0, s - 4) * 0.45
+                    : 3.5 + Math.max(0, s - 4) * 0.75
+
+                const strongest = d3.greatest(
+                  [
+                    { key: "confidence", value: d.confidence ?? 0 },
+                    { key: "control", value: d.control ?? 0 },
+                    { key: "connection", value: d.connection ?? 0 },
+                  ],
+                  (d) => d.value
+                )?.key
+
+                const color =
+                  strongest === "confidence"
+                    ? "var(--color-acid)"
+                    : strongest === "control"
+                      ? "var(--color-violet)"
+                      : "rgba(255,255,255,.82)"
+
+                return (
+                  <circle
+                    key={`${d.UIN}-${d.ID}-${i}-${isInView}`}
+                    cx={x(d.sessionNumber ?? 1)}
+                    cy={y(s)}
+                    r={radius}
+                    fill={color}
+                    opacity="0.72"
+                    filter="url(#dotGlow)"
+                    className={
+                      isInView
+                        ? "constellation-dot-animate cursor-pointer"
+                        : "cursor-pointer"
+                    }
+                    style={{
+                      animationDelay: `${((d.sessionNumber ?? 1) - 1) * 70}ms`,
+                    }}
+                    onMouseEnter={() => {
+                      const cx = x(d.sessionNumber ?? 1)
+                      const cy = y(s)
+
+                      const rawXPct = (cx / width) * 100
+
+                      setTooltip({
+                        xPct:
+                          width < 640
+                            ? Math.max(6, Math.min(94, rawXPct))
+                            : rawXPct,
+                        yPct: Math.max(14, Math.min(86, (cy / height) * 100)),
+                        label: `Participant ${String(d.UIN).slice(-4)} · session ${
+                          d.sessionNumber
+                        } · ${s.toFixed(1)} / 9 · strongest: ${tooltipOutcomeLabel(
+                          strongest,
+                          width
+                        )}`,
+                        color,
+                        align:
+                          rawXPct < 25
+                            ? "left"
+                            : rawXPct > 75
+                              ? "right"
+                              : "center",
+                      })
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                  />
+                )
+              })}
+
               <line
                 x1={pad.l}
                 x2={width - pad.r}
-                y1={y(tick)}
-                y2={y(tick)}
-                stroke="rgba(255,255,255,.12)"
+                y1={axisY}
+                y2={axisY}
+                stroke="rgba(255,255,255,.18)"
               />
+
+              {xTicks.map((session) => {
+                const sessionNumber = Number(session)
+
+                return (
+                  <g key={`x-${sessionNumber}`}>
+                    <text
+                      x={x(sessionNumber)}
+                      y={tickLabelY}
+                      textAnchor="middle"
+                      fill="rgba(255,255,255,.55)"
+                      fontSize={width < 640 ? 10 : 13}
+                    >
+                      {sessionNumber}
+                    </text>
+                  </g>
+                )
+              })}
               <text
-                x={pad.l - 12}
-                y={y(tick) + 4}
-                textAnchor="end"
-                fill="rgba(255,255,255,.58)"
-                fontSize="11"
+                x={pad.l}
+                y={height}
+                textAnchor="start"
+                fill="rgba(255,255,255,.45)"
+                fontSize={width < 640 ? 10 : 13}
+                dx="-0.3em"
+                letterSpacing="0.08em"
               >
-                {tick}
+                PARTICIPANT SESSION NUMBER
               </text>
-            </g>
-          ))}
 
-          {sample.map((d, i) => {
-            const s = score(d)
-            const radius = 3.5 + Math.max(0, s - 4) * 0.75
-            const color =
-              (d.connection ?? 0) >= (d.confidence ?? 0)
-                ? "var(--color-violet)"
-                : "var(--color-acid)"
+              {showYAxisTitle && (
+                <text
+                  transform={`translate(16 ${y(9)}) rotate(-90)`}
+                  textAnchor="end"
+                  fill="rgba(255,255,255,.5)"
+                  fontSize="11"
+                  letterSpacing="0.08em"
+                  dx="0.3em"
+                >
+                  SESSION REFLECTION STRENGTH
+                </text>
+              )}
+            </svg>
 
-            return (
-              <circle
-                key={`${d.UIN}-${d.ID}-${i}`}
-                cx={x(d.sessionNumber ?? 1)}
-                cy={y(s)}
-                r={radius}
-                fill={color}
-                opacity="0.72"
-                filter="url(#dotGlow)"
+            {tooltip && (
+              <div
+                className="pointer-events-none absolute w-56 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:w-auto sm:whitespace-nowrap"
+                style={{
+                  left: `${tooltip.xPct}%`,
+                  top: `${tooltip.yPct}%`,
+                  transform:
+                    tooltip.align === "left"
+                      ? "translate(0, -130%)"
+                      : tooltip.align === "right"
+                        ? "translate(-100%, -130%)"
+                        : "translate(-50%, -130%)",
+                  color: tooltip.color,
+                }}
               >
-                <title>
-                  Session {d.sessionNumber} · {s.toFixed(1)}/9:{" "}
-                  {String(d["Most Positive Sentence Overall"]).slice(0, 110)}
-                </title>
-              </circle>
-            )
-          })}
+                {tooltip.label}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mt-4 h-72 w-full rounded-3xl bg-white/5" />
+        )}
 
-          <text
-            x={width / 2}
-            y={height - 8}
-            textAnchor="middle"
-            fill="rgba(255,255,255,.65)"
-            fontSize="12"
-          >
-            Journey stage
-          </text>
-
-          <text
-            transform={`translate(15 ${height / 2}) rotate(-90)`}
-            textAnchor="middle"
-            fill="rgba(255,255,255,.65)"
-            fontSize="12"
-          >
-            Overall strength of session reflection
-          </text>
-        </svg>
-
-        <p className="mt-4 text-base leading-relaxed font-bold text-white/70">
-          Each dot is a session with participant voice attached. Brighter
-          clusters show where strong scores and reflective statements appear
-          together.
+        <div className="mt-5 flex flex-wrap gap-4 text-xs font-medium text-white/60">
+          {[
+            { key: "confidence", color: "var(--color-acid)" },
+            { key: "control", color: "var(--color-violet)" },
+            { key: "connection", color: "rgba(255,255,255,.82)" },
+          ].map((item) => (
+            <span key={item.key} className="flex items-center gap-2">
+              <i
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: item.color }}
+              />
+              {shortOutcomeLabel(item.key, width)}
+            </span>
+          ))}
+        </div>
+        <p className="mt-4 text-sm leading-relaxed font-medium text-white/60 sm:text-base">
+          Each dot represents a session with participant voice attached. Higher
+          and larger dots indicate stronger overall session reflections across
+          different stages of the journey. Dot colours reflect whether
+          confidence, control, or connection was strongest in that session.
         </p>
       </SoundCard>
     </div>
@@ -604,7 +783,7 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
       </div>
 
       <p className="mt-5 text-base leading-relaxed font-bold text-white/70">
-        Each mini-wave is one anonymised participant’s journey. The form makes
+        Each mini-wave is one anonymised participant's journey. The form makes
         difference visible without ranking young people.
       </p>
     </SoundCard>
