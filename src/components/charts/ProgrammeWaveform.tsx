@@ -977,7 +977,7 @@ function OrbitalScore({
           </text>
         </svg>
 
-        <h3 className="text-center text-lg font-semibold sm:text-xl">
+        <h3 className="text-center text-base font-semibold sm:text-lg">
           {title}
         </h3>
       </SoundCard>

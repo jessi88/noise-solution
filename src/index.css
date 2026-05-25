@@ -344,6 +344,23 @@ svg:has(.journey-dot[data-series="connection"]:hover)
   }
 }
 
+.sector-bar {
+  transform-origin: left center;
+  animation: sector-bar-grow 700ms ease-out both;
+}
+
+@keyframes sector-bar-grow {
+  from {
+    transform: scaleX(0);
+    opacity: 0.2;
+  }
+
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
 /* =========================================================
    ACCESSIBILITY
 ========================================================= */
