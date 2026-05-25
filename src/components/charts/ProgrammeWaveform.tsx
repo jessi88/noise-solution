@@ -57,9 +57,7 @@ function sessionRowsByNumber(rows: DashboardDataRow[]) {
 
 function SoundCard({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={`rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6`}
-    >
+    <div className="h-full rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6">
       {children}
     </div>
   )
@@ -103,6 +101,7 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
 
   return (
     <div
+      className="h-full"
       ref={(node) => {
         containerRef.current = node
         viewRef.current = node
@@ -332,7 +331,7 @@ function ImpactEqualiser({ rows }: ProgrammeWaveformProps) {
   ]
 
   return (
-    <div>
+    <div className="h-full">
       <SoundCard>
         <p className="text-base font-semibold sm:text-lg">Impact equaliser</p>
 
@@ -463,6 +462,7 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
 
   return (
     <div
+      className="h-full"
       ref={(node) => {
         containerRef.current = node
         viewRef.current = node
@@ -729,7 +729,7 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
   } | null>(null)
 
   return (
-    <div ref={viewRef}>
+    <div className="h-full" ref={viewRef}>
       <SoundCard>
         <p className="text-base font-semibold sm:text-lg">
           Participant mixtape: journeys as tracks
@@ -988,12 +988,12 @@ function OrbitalScore({
 export default function ProgrammeWaveform({ rows }: ProgrammeWaveformProps) {
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <div className="grid items-stretch gap-6 lg:grid-cols-[1.5fr_1fr]">
         <ProgrammeWave rows={rows} />
         <ImpactEqualiser rows={rows} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <div className="grid items-stretch gap-6 lg:grid-cols-[1.5fr_1fr]">
         <VoiceConstellation rows={rows} />
         <ParticipantTracks rows={rows} />
       </div>

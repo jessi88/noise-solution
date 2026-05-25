@@ -145,7 +145,7 @@ export function App() {
         id="voices"
         eyebrow=""
         title="What young people actually said"
-        subtitle="Every number becomes more meaningful when paired with the participant’s own words. These excerpts are grouped around different experiences of confidence, control, connection, and challenge."
+        subtitle="Every number becomes more meaningful when paired with the participant's own words. These excerpts are grouped around different experiences of confidence, control, connection, and challenge."
         className="text-white"
       >
         <QuoteBands rows={rows} />
@@ -155,7 +155,7 @@ export function App() {
         id="sonic"
         eyebrow=""
         title="The sound of impact"
-        subtitle="These custom visuals borrow from Noise Solution’s waveform identity. They show emotional change as rhythm, movement, and voice rather than conventional static reporting."
+        subtitle="These visuals draw on Noise Solution's waveform-inspired style, showing emotional change through movement, rhythm, and participant voice."
         className="text-white"
       >
         <ProgrammeWaveform rows={rows} />
