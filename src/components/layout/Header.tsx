@@ -6,7 +6,7 @@ export default function Header() {
           Noise Solution impact story
         </p>
 
-        <h1 className="max-w-7xl text-4xl leading-none font-medium tracking-tighter sm:text-5xl md:text-6xl lg:text-[4.5rem]">
+        <h1 className="max-w-5xl text-3xl leading-[0.95] font-medium tracking-tighter sm:text-5xl md:text-6xl lg:text-[4.5rem]">
           Young people describe feeling more confident, connected, and able to
           shape their lives.
         </h1>
