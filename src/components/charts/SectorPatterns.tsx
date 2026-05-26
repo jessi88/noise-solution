@@ -70,8 +70,8 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
               <div
                 className={
                   isInView
-                    ? "sector-bar h-2.5 cursor-pointer rounded-full bg-acid hover:drop-shadow-[0_0_8px_rgba(190,255,0,0.8)]"
-                    : "h-2.5 cursor-pointer rounded-full bg-acid hover:drop-shadow-[0_0_8px_rgba(190,255,0,0.8)]"
+                    ? "sector-bar h-2 cursor-pointer rounded-full bg-acid hover:drop-shadow-[0_0_8px_rgba(190,255,0,0.8)]"
+                    : "h-2 cursor-pointer rounded-full bg-acid hover:drop-shadow-[0_0_8px_rgba(190,255,0,0.8)]"
                 }
                 style={{
                   width: `${Math.max(4, (d.confidence / 9) * 100)}%`,
@@ -91,8 +91,8 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
               <div
                 className={
                   isInView
-                    ? "sector-bar h-2.5 cursor-pointer rounded-full bg-violet hover:drop-shadow-[0_0_12px_rgba(167,139,250,1)]"
-                    : "h-2.5 cursor-pointer rounded-full bg-violet hover:drop-shadow-[0_0_12px_rgba(167,139,250,1)]"
+                    ? "sector-bar h-2 cursor-pointer rounded-full bg-violet hover:drop-shadow-[0_0_12px_rgba(167,139,250,1)]"
+                    : "h-2 cursor-pointer rounded-full bg-violet hover:drop-shadow-[0_0_12px_rgba(167,139,250,1)]"
                 }
                 style={{ width: `${Math.max(4, (d.control / 9) * 100)}%` }}
                 onMouseEnter={(e) =>
@@ -109,8 +109,8 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
               <div
                 className={
                   isInView
-                    ? "sector-bar h-2.5 cursor-pointer rounded-full bg-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
-                    : "h-2.5 cursor-pointer rounded-full bg-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+                    ? "sector-bar h-2 cursor-pointer rounded-full bg-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+                    : "h-2 cursor-pointer rounded-full bg-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
                 }
                 style={{ width: `${Math.max(4, (d.connection / 9) * 100)}%` }}
                 onMouseEnter={(e) =>
@@ -142,17 +142,17 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
 
       <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-white/60">
         <span className="flex items-center gap-2">
-          <i className="h-2.5 w-2.5 rounded-full bg-acid" />
+          <i className="h-2 w-2 rounded-full bg-acid" />
           Confidence
         </span>
 
         <span className="flex items-center gap-2">
-          <i className="h-2.5 w-2.5 rounded-full bg-violet" />
+          <i className="h-2 w-2 rounded-full bg-violet" />
           Control
         </span>
 
         <span className="flex items-center gap-2">
-          <i className="h-2.5 w-2.5 rounded-full bg-white" />
+          <i className="h-2 w-2 rounded-full bg-white" />
           Connection
         </span>
       </div>

@@ -7,7 +7,7 @@ const base = import.meta.env.BASE_URL
 
 export default function PartnerIntro({
   noiseLogo = `${base}Noise Solution Logo_CORE - White and Acid Green Duotone.svg`,
-  dcmLogo = `${base}Data_ChangeMakers_Logo.png`,
+  dcmLogo = `${base}DCM logo for dark bg.png`,
 }: PartnerIntroProps) {
   return (
     <section className="text-white">
@@ -39,15 +39,15 @@ export default function PartnerIntro({
 
           <div className="flex flex-col">
             <div className="flex h-30 flex-col justify-center">
-              <p className="mb-4 text-xs font-bold tracking-[0.22em] text-white/45 uppercase">
+              <p className="mt-5 mb-4 text-xs font-bold tracking-[0.22em] text-white/45 uppercase">
                 In collaboration with
               </p>
 
-              <div className="inline-flex self-start overflow-hidden rounded-2xl bg-white">
+              <div className="inline-flex self-start">
                 <img
                   src={dcmLogo}
                   alt="Data ChangeMakers"
-                  className="h-24 w-auto object-contain"
+                  className="-mt-4 -ml-4 h-34 w-auto object-contain"
                 />
               </div>
             </div>

@@ -28,22 +28,22 @@ export default function EngagementCorrelation({
     .sort((a, b) => b.sessions - a.sessions)
 
   return (
-    <div className="rounded-3xl border border-acid/70 bg-white/4 p-8 text-white">
-      <p className="text-xl font-black">Participants by gender and age band</p>
+    <div className="rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6">
+      <p className="text-base font-semibold sm:text-lg">
+        Participant sessions by gender
+      </p>
 
-      <div className="mt-6 overflow-x-auto rounded-3xl bg-white/6">
-        <table className="w-full border-collapse text-left">
+      <div className="mt-6 overflow-x-auto rounded-2xl bg-white/6">
+        <table className="w-full min-w-130 border-collapse text-left">
           <thead className="bg-acid/10 text-acid">
             <tr>
-              <th className="px-5 py-4 text-sm font-black tracking-wide uppercase">
+              <th className="px-4 py-3 text-xs font-semibold tracking-wide uppercase sm:px-5 sm:py-4">
                 Gender
               </th>
-
-              <th className="px-5 py-4 text-sm font-black tracking-wide uppercase">
+              <th className="px-4 py-3 text-xs font-semibold tracking-wide uppercase sm:px-5 sm:py-4">
                 Sessions
               </th>
-
-              <th className="px-5 py-4 text-sm font-black tracking-wide uppercase">
+              <th className="px-4 py-3 text-xs font-semibold tracking-wide uppercase sm:px-5 sm:py-4">
                 Average overall
               </th>
             </tr>
@@ -52,11 +52,13 @@ export default function EngagementCorrelation({
           <tbody>
             {data.map((d) => (
               <tr key={d.gender} className="border-t border-white/10">
-                <td className="px-5 py-5 text-lg font-bold">{d.gender}</td>
-
-                <td className="px-5 py-5 text-lg font-bold">{d.sessions}</td>
-
-                <td className="px-5 py-5 text-lg font-bold">
+                <td className="px-4 py-4 text-sm font-medium sm:px-5 sm:text-base">
+                  {d.gender}
+                </td>
+                <td className="px-4 py-4 text-sm font-medium sm:px-5 sm:text-base">
+                  {d.sessions}
+                </td>
+                <td className="px-4 py-4 text-sm font-medium sm:px-5 sm:text-base">
                   {d.average.toFixed(1)} / 9
                 </td>
               </tr>
@@ -64,6 +66,11 @@ export default function EngagementCorrelation({
           </tbody>
         </table>
       </div>
+
+      <p className="mt-6 text-sm leading-relaxed font-medium text-white/60 sm:text-base">
+        "Average overall" combines confidence, control, and connection into a
+        single average score across recorded sessions.
+      </p>
     </div>
   )
 }

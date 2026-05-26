@@ -165,7 +165,7 @@ export function App() {
         id="patterns"
         eyebrow=""
         title="What patterns are emerging?"
-        subtitle="This section is for operational learning. It compares contexts carefully, avoiding deficit framing or ranking young people."
+        subtitle="These comparisons support operational learning and should be interpreted carefully rather than used to rank young people."
         className="text-white"
       >
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
