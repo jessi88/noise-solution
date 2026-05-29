@@ -13,12 +13,24 @@ type ParticipantJourney = {
   change: number
 }
 
+const mean = (values: Array<number | null | undefined>) =>
+  d3.mean(values.filter((v): v is number => typeof v === "number")) ?? 0
+
+const wellbeingScore = (row: DashboardDataRow) =>
+  mean([row.confidence, row.control, row.connection])
+
 function getParticipantJourneys(
   rows: DashboardDataRow[]
 ): ParticipantJourney[] {
   return Array.from(
     d3.group(
-      rows.filter((d) => d.sessionNumber !== null && d.confidence !== null),
+      rows.filter(
+        (d) =>
+          d.sessionNumber !== null &&
+          d.confidence !== null &&
+          d.control !== null &&
+          d.connection !== null
+      ),
       (d) => d.UIN
     )
   )
@@ -27,8 +39,8 @@ function getParticipantJourneys(
         (a, b) => (a.sessionNumber ?? 0) - (b.sessionNumber ?? 0)
       )
 
-      const first = sorted[0]?.confidence ?? 0
-      const latest = sorted[sorted.length - 1]?.confidence ?? 0
+      const first = wellbeingScore(sorted[0])
+      const latest = wellbeingScore(sorted[sorted.length - 1])
 
       return {
         uin,
@@ -75,8 +87,9 @@ export default function ParticipantJourneyMap({
       <div className="mt-6 max-w-7xl">
         <p className="text-sm leading-relaxed font-medium text-white/65 sm:text-base">
           Participant experiences move in different directions over time. Some
-          young people describe growing confidence, while others show periods of
-          challenge, fluctuation, or stability.
+          young people show increases across confidence, control, and
+          connection, while others experience periods of challenge, fluctuation,
+          or stability.
         </p>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
@@ -106,7 +119,8 @@ export default function ParticipantJourneyMap({
 
         <p className="mt-5 text-sm leading-relaxed font-medium text-white/65 sm:text-base">
           These examples highlight movement and variation rather than ranking
-          young people or reducing journeys to a single before-and-after result.
+          young people or reducing complex journeys to a single before-and-after
+          result.
         </p>
       </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-3">

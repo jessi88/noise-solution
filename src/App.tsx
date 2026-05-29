@@ -145,7 +145,7 @@ export function App() {
         id="voices"
         eyebrow=""
         title="What young people actually said"
-        subtitle="Every number becomes more meaningful when paired with the participant's own words. These excerpts are grouped around different experiences of confidence, control, connection, and challenge."
+        subtitle="Every number becomes more meaningful when paired with the participant's own words. These excerpts highlight both positive experiences and challenges across confidence, control, connection, and overall programme experience."
         className="text-white"
       >
         <QuoteBands rows={rows} />

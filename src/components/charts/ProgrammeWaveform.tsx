@@ -896,6 +896,14 @@ function OrbitalScore({
 }) {
   const { ref, isInView } = useInView<HTMLDivElement>()
 
+  const [tooltip, setTooltip] = useState<{
+    xPct: number
+    yPct: number
+    label: string
+    color: string
+    align: "left" | "center" | "right"
+  } | null>(null)
+
   const values = rows
     .map((d) => d[metric])
     .filter((v): v is number => typeof v === "number")
@@ -914,69 +922,109 @@ function OrbitalScore({
   return (
     <div ref={ref}>
       <SoundCard>
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="mx-auto h-auto w-full max-w-75"
-        >
-          {bins.map((count, i) => {
-            const angle = (-90 + i * 40) * (Math.PI / 180)
-            const r1 = 42
-            const r2 = 68 + (count / max) * 58
-
-            const x1 = cx + Math.cos(angle) * r1
-            const y1 = cy + Math.sin(angle) * r1
-            const x2 = cx + Math.cos(angle) * r2
-            const y2 = cy + Math.sin(angle) * r2
-
-            return (
-              <g key={i}>
-                <line
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke={color}
-                  strokeWidth="9"
-                  strokeLinecap="round"
-                  opacity="0.9"
-                  className={
-                    isInView ? "orbit-spoke orbit-spoke-animate" : "orbit-spoke"
-                  }
-                  style={{ animationDelay: `${i * 70}ms` }}
-                />
-                <text
-                  x={cx + Math.cos(angle) * (r2 + 18)}
-                  y={cy + Math.sin(angle) * (r2 + 18) + 4}
-                  textAnchor="middle"
-                  fill="rgba(255,255,255,.62)"
-                  fontSize="12"
-                >
-                  {i + 1}
-                </text>
-              </g>
-            )
-          })}
-
-          <circle
-            cx={cx}
-            cy={cy}
-            r="38"
-            fill="rgba(255,255,255,.04)"
-            stroke="rgba(255,255,255,.18)"
-          />
-
-          <text
-            x={cx}
-            y={cy + 6}
-            textAnchor="middle"
-            fill={color}
-            fontSize="26"
-            fontWeight="700"
+        <div className="relative">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="mx-auto h-auto w-full max-w-75"
           >
-            {mean(values).toFixed(1)}
-          </text>
-        </svg>
+            {bins.map((count, i) => {
+              //if (count === 0) return null
+              const angle = (-90 + i * 40) * (Math.PI / 180)
+              const r1 = 42
+              const r2 = count === 0 ? 52 : 68 + (count / max) * 58
 
+              const x1 = cx + Math.cos(angle) * r1
+              const y1 = cy + Math.sin(angle) * r1
+              const x2 = cx + Math.cos(angle) * r2
+              const y2 = cy + Math.sin(angle) * r2
+
+              return (
+                <g key={i}>
+                  <line
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={color}
+                    strokeWidth="9"
+                    strokeLinecap="round"
+                    opacity={count === 0 ? 0.2 : 0.9}
+                    className={
+                      isInView
+                        ? "orbit-spoke orbit-spoke-animate cursor-pointer"
+                        : "orbit-spoke cursor-pointer"
+                    }
+                    style={{ animationDelay: `${i * 70}ms` }}
+                    onMouseEnter={() => {
+                      const rawXPct = (x2 / width) * 100
+                      const rawYPct = (y2 / height) * 100
+
+                      setTooltip({
+                        xPct: Math.max(8, Math.min(92, rawXPct)),
+                        yPct: Math.max(14, Math.min(86, rawYPct)),
+                        label: `${title} · score ${i + 1} · ${count} sessions`,
+                        color,
+                        align:
+                          rawXPct < 25
+                            ? "left"
+                            : rawXPct > 75
+                              ? "right"
+                              : "center",
+                      })
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                  />
+                  <text
+                    x={cx + Math.cos(angle) * (r2 + 18)}
+                    y={cy + Math.sin(angle) * (r2 + 18) + 4}
+                    textAnchor="middle"
+                    fill="rgba(255,255,255,.62)"
+                    fontSize="12"
+                  >
+                    {i + 1}
+                  </text>
+                </g>
+              )
+            })}
+
+            <circle
+              cx={cx}
+              cy={cy}
+              r="38"
+              fill="rgba(255,255,255,.04)"
+              stroke="rgba(255,255,255,.18)"
+            />
+
+            <text
+              x={cx}
+              y={cy + 6}
+              textAnchor="middle"
+              fill={color}
+              fontSize="26"
+              fontWeight="700"
+            >
+              {mean(values).toFixed(1)}
+            </text>
+          </svg>
+          {tooltip && (
+            <div
+              className="pointer-events-none absolute w-56 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:w-auto sm:whitespace-nowrap"
+              style={{
+                left: `${tooltip.xPct}%`,
+                top: `${tooltip.yPct}%`,
+                transform:
+                  tooltip.align === "left"
+                    ? "translate(0, -130%)"
+                    : tooltip.align === "right"
+                      ? "translate(-100%, -130%)"
+                      : "translate(-50%, -130%)",
+                color: tooltip.color,
+              }}
+            >
+              {tooltip.label}
+            </div>
+          )}
+        </div>
         <h3 className="text-center text-base font-semibold sm:text-lg">
           {title}
         </h3>

@@ -21,6 +21,9 @@ type QuoteTheme = {
     | "Most Positive Sentence Autonomy"
     | "Most Positive Sentence Relatedness"
     | "Most Negative Sentence Overall"
+    | "Most Negative Sentence Competence"
+    | "Most Negative Sentence Autonomy"
+    | "Most Negative Sentence Relatedness"
   label: string
   scoreKey: "confidence" | "control" | "connection" | "sessionRating"
 }
@@ -48,8 +51,23 @@ const quoteThemes: QuoteTheme[] = [
   },
   {
     value: "Most Negative Sentence Overall",
-    label: "Setbacks / challenges",
+    label: "Overall challenges",
     scoreKey: "sessionRating",
+  },
+  {
+    value: "Most Negative Sentence Competence",
+    label: "Confidence challenges",
+    scoreKey: "confidence",
+  },
+  {
+    value: "Most Negative Sentence Autonomy",
+    label: "Control challenges",
+    scoreKey: "control",
+  },
+  {
+    value: "Most Negative Sentence Relatedness",
+    label: "Connection challenges",
+    scoreKey: "connection",
   },
 ]
 
