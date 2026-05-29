@@ -13,7 +13,7 @@ export default function PartnerIntro({
     <section className="text-white">
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-12 sm:px-6 lg:pb-16">
         <div className="flex flex-col gap-10 border-y border-white/10 py-8 md:grid md:grid-cols-2 md:items-start md:gap-16">
-          <div className="flex flex-col">
+          <div className="flex h-full flex-col">
             <div className="flex h-30 items-center">
               <img
                 src={noiseLogo}
@@ -31,13 +31,13 @@ export default function PartnerIntro({
               href="https://www.noisesolution.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex text-sm font-bold text-acid transition-opacity hover:opacity-80"
+              className="mt-auto inline-flex pt-4 text-sm font-bold whitespace-nowrap text-acid transition-opacity hover:opacity-80"
             >
               Visit Noise Solution →
             </a>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex h-full flex-col">
             <div className="flex h-30 flex-col justify-center">
               <p className="mt-5 mb-4 text-xs font-bold tracking-[0.22em] text-white/45 uppercase">
                 In collaboration with
@@ -61,7 +61,7 @@ export default function PartnerIntro({
               href="https://www.datachangemakers.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex text-sm font-bold text-acid transition-opacity hover:opacity-80"
+              className="mt-auto inline-flex pt-4 text-sm font-bold whitespace-nowrap text-acid transition-opacity hover:opacity-80"
             >
               Visit Data ChangeMakers →
             </a>
