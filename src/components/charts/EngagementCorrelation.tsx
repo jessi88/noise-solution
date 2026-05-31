@@ -31,22 +31,22 @@ export default function EngagementCorrelation({
   }, [rows])
 
   return (
-    <div className="rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6">
+    <div className="h-full min-w-0 rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6">
       <p className="text-base font-semibold sm:text-lg">
         Participant sessions by gender
       </p>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl bg-white/6">
-        <table className="w-full min-w-130 border-collapse text-left">
+      <div className="mt-6 rounded-2xl bg-white/6">
+        <table className="w-full table-fixed border-collapse text-left">
           <thead className="bg-acid/10 text-acid">
             <tr>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wide uppercase sm:px-5 sm:py-4">
+              <th className="w-[38%] px-3 py-3 text-xs font-semibold tracking-wide uppercase">
                 Gender
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wide uppercase sm:px-5 sm:py-4">
+              <th className="w-[24%] px-3 py-3 text-xs font-semibold tracking-wide uppercase">
                 Sessions
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wide uppercase sm:px-5 sm:py-4">
+              <th className="w-[38%] px-3 py-3 text-xs font-semibold tracking-wide uppercase">
                 Average overall
               </th>
             </tr>
@@ -55,13 +55,11 @@ export default function EngagementCorrelation({
           <tbody>
             {data.map((d) => (
               <tr key={d.gender} className="border-t border-white/10">
-                <td className="px-4 py-4 text-sm font-medium sm:px-5 sm:text-base">
+                <td className="px-3 py-4 text-sm font-medium wrap-break-word">
                   {d.gender}
                 </td>
-                <td className="px-4 py-4 text-sm font-medium sm:px-5 sm:text-base">
-                  {d.sessions}
-                </td>
-                <td className="px-4 py-4 text-sm font-medium sm:px-5 sm:text-base">
+                <td className="px-3 py-4 text-sm font-medium">{d.sessions}</td>
+                <td className="px-3 py-4 text-sm font-medium">
                   {d.average.toFixed(1)} / 9
                 </td>
               </tr>

@@ -168,9 +168,14 @@ export function App() {
         subtitle="These comparisons support operational learning and should be interpreted carefully rather than used to rank young people."
         className="text-white"
       >
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-          <SectorPatterns rows={rows} />
-          <EngagementCorrelation rows={rows} />
+        <div className="grid min-w-0 items-stretch gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="min-w-0">
+            <SectorPatterns rows={rows} />
+          </div>
+
+          <div className="min-w-0">
+            <EngagementCorrelation rows={rows} />
+          </div>
         </div>
       </Section>
 

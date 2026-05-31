@@ -35,7 +35,7 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
   return (
     <div
       ref={viewRef}
-      className="rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6"
+      className="h-full min-w-0 rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6"
     >
       <p className="text-base font-semibold sm:text-lg">
         Different patterns by referral sector
