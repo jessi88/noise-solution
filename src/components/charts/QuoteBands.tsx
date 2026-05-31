@@ -28,6 +28,17 @@ type QuoteTheme = {
   scoreKey: "confidence" | "control" | "connection" | "sessionRating"
 }
 
+function shuffleArray<T>(array: T[]) {
+  const copy = [...array]
+
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+
+  return copy
+}
+
 const quoteThemes: QuoteTheme[] = [
   {
     value: "Most Positive Sentence Overall",
@@ -78,7 +89,19 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
     "Most Positive Sentence Overall"
   )
 
-  const [offset, setOffset] = useState(0)
+  const [quoteState, setQuoteState] = useState<{
+    theme: QuoteTheme["value"]
+    page: number
+    shuffledQuotes: Array<{
+      quote: string
+      session: number | null
+      score: number | null
+    }>
+  }>({
+    theme: "Most Positive Sentence Overall",
+    page: 0,
+    shuffledQuotes: [],
+  })
 
   const activeTheme =
     quoteThemes.find((d) => d.value === theme) ?? quoteThemes[0]
@@ -99,13 +122,20 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
       }))
   }, [rows, activeTheme])
 
-  const visibleQuotes = useMemo(() => {
-    if (quotes.length <= quoteCount) return quotes
+  const activeShuffledQuotes = useMemo(() => {
+    if (quoteState.theme === theme && quoteState.shuffledQuotes.length > 0) {
+      return quoteState.shuffledQuotes
+    }
 
-    return Array.from({ length: quoteCount }, (_, i) => {
-      return quotes[(offset + i) % quotes.length]
-    })
-  }, [quotes, offset, quoteCount])
+    return shuffleArray(quotes)
+  }, [quoteState, theme, quotes])
+
+  const page = quoteState.theme === theme ? quoteState.page : 0
+
+  const visibleQuotes = useMemo(() => {
+    const start = page * quoteCount
+    return activeShuffledQuotes.slice(start, start + quoteCount)
+  }, [activeShuffledQuotes, page, quoteCount])
 
   return (
     <div>
@@ -113,8 +143,31 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
         <Select
           value={theme}
           onValueChange={(value) => {
-            setTheme(value as QuoteTheme["value"])
-            setOffset(0)
+            const nextTheme = value as QuoteTheme["value"]
+            setTheme(nextTheme)
+
+            const nextActiveTheme =
+              quoteThemes.find((d) => d.value === nextTheme) ?? quoteThemes[0]
+
+            const nextQuotes = rows
+              .filter((d) => {
+                const quote = d[nextActiveTheme.value]
+                return typeof quote === "string" && quote.trim().length > 0
+              })
+              .map((d) => ({
+                quote: String(d[nextActiveTheme.value]),
+                session: d.sessionNumber,
+                score:
+                  typeof d[nextActiveTheme.scoreKey] === "number"
+                    ? d[nextActiveTheme.scoreKey]
+                    : null,
+              }))
+
+            setQuoteState({
+              theme: nextTheme,
+              page: 0,
+              shuffledQuotes: shuffleArray(nextQuotes),
+            })
           }}
         >
           <SelectTrigger className="h-10! w-full rounded-full border border-white/30 bg-white/4 px-4 text-sm leading-none font-medium text-white sm:w-72">
@@ -137,8 +190,24 @@ export default function QuoteBands({ rows }: QuoteBandsProps) {
         <Button
           type="button"
           onClick={() => {
-            if (quotes.length <= quoteCount) return
-            setOffset(Math.floor(Math.random() * quotes.length))
+            const totalPages = Math.ceil(
+              activeShuffledQuotes.length / quoteCount
+            )
+            const nextPage = page + 1
+
+            if (nextPage < totalPages) {
+              setQuoteState({
+                theme,
+                page: nextPage,
+                shuffledQuotes: activeShuffledQuotes,
+              })
+            } else {
+              setQuoteState({
+                theme,
+                page: 0,
+                shuffledQuotes: shuffleArray(quotes),
+              })
+            }
           }}
           className="h-11! w-full rounded-full bg-acid px-4 py-0 text-sm leading-none font-medium text-black hover:bg-acid/90 sm:w-auto"
         >

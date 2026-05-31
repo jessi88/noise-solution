@@ -34,7 +34,6 @@ export function useDashboardData() {
     control_std: number(d["Autonomy Std"]),
     connection_std: number(d["Relatedness Std"]),
     sessionRating_std: number(d["Session Rating Std"]),
-    //sdt: number(d["SDT Average"]),    --- NEEDS TO BE REPLACED AND REMOVED EVERYWHERE!!!
     sessionNumber: number(d["Participant Session #"]),
     // Parse session date into a TS Date object
     date: d["Session Start Parsed"]
@@ -43,7 +42,9 @@ export function useDashboardData() {
   }))
 
   // Count unique participants
-  const participants = new Set(rows.map((d) => d.UIN)).size
+  const participants = new Set(
+    rows.map((d) => d.UIN).filter((d) => d !== null && d !== undefined)
+  ).size
 
   // Total number of sessions
   const sessions = rows.length

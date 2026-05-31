@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import * as d3 from "d3"
 import type { DashboardDataRow } from "@/hooks/useDashboardData"
 
@@ -11,21 +12,23 @@ const mean = (values: Array<number | null | undefined>) =>
 export default function EngagementCorrelation({
   rows,
 }: EngagementCorrelationProps) {
-  const data = Array.from(
-    d3.group(rows, (d) => String(d["Participant Gender"] || "Unknown"))
-  )
-    .map(([gender, values]) => ({
-      gender,
-      sessions: values.length,
-      average: mean(
-        values.map((d) =>
-          d.confidence !== null && d.control !== null && d.connection !== null
-            ? (d.confidence + d.control + d.connection) / 3
-            : null
-        )
-      ),
-    }))
-    .sort((a, b) => b.sessions - a.sessions)
+  const data = useMemo(() => {
+    return Array.from(
+      d3.group(rows, (d) => String(d["Participant Gender"] || "Unknown"))
+    )
+      .map(([gender, values]) => ({
+        gender,
+        sessions: values.length,
+        average: mean(
+          values.map((d) =>
+            d.confidence !== null && d.control !== null && d.connection !== null
+              ? (d.confidence + d.control + d.connection) / 3
+              : null
+          )
+        ),
+      }))
+      .sort((a, b) => b.sessions - a.sessions)
+  }, [rows])
 
   return (
     <div className="rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6">

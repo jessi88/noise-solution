@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import * as d3 from "d3"
 import type { DashboardDataRow } from "@/hooks/useDashboardData"
 
@@ -56,28 +57,41 @@ function getParticipantJourneys(
 export default function ParticipantJourneyMap({
   rows,
 }: ParticipantJourneyMapProps) {
-  const journeys = getParticipantJourneys(rows)
+  const journeys = useMemo(() => getParticipantJourneys(rows), [rows])
 
-  const increasedCount = journeys.filter((d) => d.change > 0.15).length
-  const steadyCount = journeys.filter(
-    (d) => d.change >= -0.15 && d.change <= 0.15
-  ).length
-  const decreasedCount = journeys.filter((d) => d.change < -0.15).length
+  const {
+    increasedCount,
+    steadyCount,
+    decreasedCount,
+    increased,
+    steady,
+    decreased,
+  } = useMemo(() => {
+    const increasedItems = journeys
+      .filter((d) => d.change > 0.15)
+      .sort((a, b) => b.change - a.change)
+      .slice(0, 2)
 
-  const increased = journeys
-    .filter((d) => d.change > 0.15)
-    .sort((a, b) => b.change - a.change)
-    .slice(0, 2)
+    const steadyItems = journeys
+      .filter((d) => d.change >= -0.15 && d.change <= 0.15)
+      .sort((a, b) => b.sessions - a.sessions)
+      .slice(0, 2)
 
-  const steady = journeys
-    .filter((d) => d.change >= -0.15 && d.change <= 0.15)
-    .sort((a, b) => b.sessions - a.sessions)
-    .slice(0, 2)
+    const decreasedItems = journeys
+      .filter((d) => d.change < -0.15)
+      .sort((a, b) => a.change - b.change)
+      .slice(0, 2)
 
-  const decreased = journeys
-    .filter((d) => d.change < -0.15)
-    .sort((a, b) => a.change - b.change)
-    .slice(0, 2)
+    return {
+      increasedCount: journeys.filter((d) => d.change > 0.15).length,
+      steadyCount: journeys.filter((d) => d.change >= -0.15 && d.change <= 0.15)
+        .length,
+      decreasedCount: journeys.filter((d) => d.change < -0.15).length,
+      increased: increasedItems,
+      steady: steadyItems,
+      decreased: decreasedItems,
+    }
+  }, [journeys])
 
   return (
     <div className="rounded-3xl border border-acid/40 bg-white/4 p-4 text-white sm:p-6">

@@ -1,5 +1,5 @@
 import * as d3 from "d3"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useInView } from "@/hooks/useInView"
 import type { DashboardDataRow } from "@/hooks/useDashboardData"
 
@@ -19,16 +19,18 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
     color: string
   } | null>(null)
 
-  const data = Array.from(d3.group(rows, (d) => String(d.Sector || "Unknown")))
-    .map(([sector, values]) => ({
-      sector,
-      n: values.length,
-      confidence: mean(values.map((d) => d.confidence)),
-      control: mean(values.map((d) => d.control)),
-      connection: mean(values.map((d) => d.connection)),
-    }))
-    .sort((a, b) => b.n - a.n)
-    .slice(0, 8)
+  const data = useMemo(() => {
+    return Array.from(d3.group(rows, (d) => String(d.Sector || "Unknown")))
+      .map(([sector, values]) => ({
+        sector,
+        n: values.length,
+        confidence: mean(values.map((d) => d.confidence)),
+        control: mean(values.map((d) => d.control)),
+        connection: mean(values.map((d) => d.connection)),
+      }))
+      .sort((a, b) => b.n - a.n)
+      .slice(0, 8)
+  }, [rows])
 
   return (
     <div
@@ -128,9 +130,12 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
         ))}
         {tooltip && (
           <div
-            className="pointer-events-none fixed z-50 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-nowrap shadow-2xl"
+            className="pointer-events-none fixed z-50 w-56 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl"
             style={{
-              left: tooltip.x + 12,
+              left: Math.max(
+                12,
+                Math.min(tooltip.x + 12, window.innerWidth - 240)
+              ),
               top: tooltip.y - 12,
               color: tooltip.color,
             }}

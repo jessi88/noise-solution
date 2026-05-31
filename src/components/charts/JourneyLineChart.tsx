@@ -37,10 +37,11 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
   const { ref: viewRef, isInView } = useInView<HTMLDivElement>()
 
   const [tooltip, setTooltip] = useState<{
-    x: number
-    y: number
+    xPct: number
+    yPct: number
     label: string
     color: string
+    align: "left" | "center" | "right"
   } | null>(null)
 
   const hasMeasured = containerWidth > 0
@@ -50,8 +51,8 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
 
   const maxSession = d3.max(rows, (d) => d.sessionNumber ?? 0) ?? 10
 
-  const leftPad = width < 640 ? 64 : 70
-  const rightPad = width < 640 ? 120 : 170
+  const leftPad = width < 640 ? 24 : 70
+  const rightPad = width < 640 ? 100 : 170
 
   const x = d3
     .scaleLinear()
@@ -107,15 +108,17 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
                   opacity="0.35"
                 />
 
-                <text
-                  x={leftPad - 36}
-                  y={y(t) + 5}
-                  fill="white"
-                  opacity="0.55"
-                  fontSize={width < 640 ? "11" : "13"}
-                >
-                  {t}
-                </text>
+                {width >= 640 && (
+                  <text
+                    x={leftPad - 36}
+                    y={y(t) + 5}
+                    fill="white"
+                    opacity="0.55"
+                    fontSize="13"
+                  >
+                    {t}
+                  </text>
+                )}
               </g>
             ))}
 
@@ -158,10 +161,16 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
                       fill={color}
                       data-series={key}
                       className="journey-dot"
-                      onMouseEnter={() => {
+                      onPointerEnter={() => {
+                        const rawXPct = (x(d.session) / width) * 100
+                        const rawYPct = (y(d.value) / height) * 100
+
                         setTooltip({
-                          x: x(d.session),
-                          y: y(d.value),
+                          xPct:
+                            width < 640
+                              ? Math.max(6, Math.min(94, rawXPct))
+                              : rawXPct,
+                          yPct: Math.max(14, Math.min(86, rawYPct)),
                           label: `${
                             width < 640
                               ? key === "confidence"
@@ -172,9 +181,43 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
                               : label
                           } · session ${d.session} · ${d.value.toFixed(1)} / 9`,
                           color,
+                          align:
+                            rawXPct < 25
+                              ? "left"
+                              : rawXPct > 75
+                                ? "right"
+                                : "center",
                         })
                       }}
-                      onMouseLeave={() => setTooltip(null)}
+                      onPointerLeave={() => setTooltip(null)}
+                      onClick={() => {
+                        const rawXPct = (x(d.session) / width) * 100
+                        const rawYPct = (y(d.value) / height) * 100
+
+                        setTooltip({
+                          xPct:
+                            width < 640
+                              ? Math.max(6, Math.min(94, rawXPct))
+                              : rawXPct,
+                          yPct: Math.max(14, Math.min(86, rawYPct)),
+                          label: `${
+                            width < 640
+                              ? key === "confidence"
+                                ? "Confidence"
+                                : key === "control"
+                                  ? "Control"
+                                  : "Connected"
+                              : label
+                          } · session ${d.session} · ${d.value.toFixed(1)} / 9`,
+                          color,
+                          align:
+                            rawXPct < 25
+                              ? "left"
+                              : rawXPct > 75
+                                ? "right"
+                                : "center",
+                        })
+                      }}
                     />
                   ))}
                   {last && (
@@ -230,11 +273,16 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
           </svg>
           {tooltip && (
             <div
-              className="pointer-events-none absolute max-w-55 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:max-w-none sm:whitespace-nowrap"
+              className="pointer-events-none absolute w-56 rounded-xl border border-white/15 bg-black/95 px-3 py-2 text-xs font-semibold whitespace-normal shadow-2xl sm:w-auto sm:whitespace-nowrap"
               style={{
-                left: tooltip.x,
-                top: tooltip.y - 44,
-                transform: "translateX(-50%)",
+                left: `${tooltip.xPct}%`,
+                top: `${tooltip.yPct}%`,
+                transform:
+                  tooltip.align === "left"
+                    ? "translate(0, -130%)"
+                    : tooltip.align === "right"
+                      ? "translate(-100%, -130%)"
+                      : "translate(-50%, -130%)",
                 color: tooltip.color,
               }}
             >

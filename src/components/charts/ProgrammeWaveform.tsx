@@ -1,5 +1,5 @@
 import * as d3 from "d3"
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useDimensions } from "@/hooks/useDimensions"
 import type { DashboardDataRow } from "@/hooks/useDashboardData"
 import { useInView } from "@/hooks/useInView"
@@ -94,7 +94,7 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
   const tickFontSize = width < 640 ? 10 : 13
   const axisFontSize = width < 640 ? 10 : 13
 
-  const data = sessionRowsByNumber(rows)
+  const data = useMemo(() => sessionRowsByNumber(rows), [rows])
 
   const x = (i: number) =>
     pad + i * ((width - pad * 2) / Math.max(1, data.length - 1))
@@ -200,7 +200,7 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
                           r={width < 640 ? "8" : "10"}
                           fill="transparent"
                           className="cursor-pointer"
-                          onMouseEnter={() => {
+                          onPointerEnter={() => {
                             const rawXPct = (x(i) / width) * 100
                             const rawYPct = (y / height) * 100
 
@@ -222,7 +222,29 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
                                     : "center",
                             })
                           }}
-                          onMouseLeave={() => setTooltip(null)}
+                          onPointerLeave={() => setTooltip(null)}
+                          onClick={() => {
+                            const rawXPct = (x(i) / width) * 100
+                            const rawYPct = (y / height) * 100
+
+                            setTooltip({
+                              xPct:
+                                width < 640
+                                  ? Math.max(6, Math.min(94, rawXPct))
+                                  : rawXPct,
+                              yPct: Math.max(14, Math.min(86, rawYPct)),
+                              label: `${shortLabel(series.key, series.label, width)} · session ${
+                                row.session
+                              } · ${value.toFixed(1)} / 9`,
+                              color: series.color,
+                              align:
+                                rawXPct < 25
+                                  ? "left"
+                                  : rawXPct > 75
+                                    ? "right"
+                                    : "center",
+                            })
+                          }}
                         />
                       )
                     })}
@@ -553,10 +575,9 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
                     style={{
                       animationDelay: `${((d.sessionNumber ?? 1) - 1) * 70}ms`,
                     }}
-                    onMouseEnter={() => {
+                    onPointerEnter={() => {
                       const cx = x(d.sessionNumber ?? 1)
                       const cy = y(s)
-
                       const rawXPct = (cx / width) * 100
 
                       setTooltip({
@@ -580,7 +601,33 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
                               : "center",
                       })
                     }}
-                    onMouseLeave={() => setTooltip(null)}
+                    onPointerLeave={() => setTooltip(null)}
+                    onClick={() => {
+                      const cx = x(d.sessionNumber ?? 1)
+                      const cy = y(s)
+                      const rawXPct = (cx / width) * 100
+
+                      setTooltip({
+                        xPct:
+                          width < 640
+                            ? Math.max(6, Math.min(94, rawXPct))
+                            : rawXPct,
+                        yPct: Math.max(14, Math.min(86, (cy / height) * 100)),
+                        label: `Participant ${String(d.UIN).slice(-4)} · session ${
+                          d.sessionNumber
+                        } · ${s.toFixed(1)} / 9 · strongest: ${tooltipOutcomeLabel(
+                          strongest,
+                          width
+                        )}`,
+                        color,
+                        align:
+                          rawXPct < 25
+                            ? "left"
+                            : rawXPct > 75
+                              ? "right"
+                              : "center",
+                      })
+                    }}
                   />
                 )
               })}
@@ -687,21 +734,23 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
 
 function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
   const { ref: viewRef, isInView } = useInView<HTMLDivElement>()
-  const journeys = Array.from(d3.group(rows, (d) => d.UIN))
-    .map(([uin, values]) => {
-      const sorted = values
-        .filter((d) => d.sessionNumber !== null)
-        .sort((a, b) => (a.sessionNumber ?? 0) - (b.sessionNumber ?? 0))
+  const journeys = useMemo(() => {
+    return Array.from(d3.group(rows, (d) => d.UIN))
+      .map(([uin, values]) => {
+        const sorted = values
+          .filter((d) => d.sessionNumber !== null)
+          .sort((a, b) => (a.sessionNumber ?? 0) - (b.sessionNumber ?? 0))
 
-      if (sorted.length < 4) return null
+        if (sorted.length < 4) return null
 
-      return {
-        uin,
-        rows: sorted,
-        change: score(sorted[sorted.length - 1]) - score(sorted[0]),
-      }
-    })
-    .filter((d): d is NonNullable<typeof d> => d !== null)
+        return {
+          uin,
+          rows: sorted,
+          change: score(sorted[sorted.length - 1]) - score(sorted[0]),
+        }
+      })
+      .filter((d): d is NonNullable<typeof d> => d !== null)
+  }, [rows])
 
   const increased = journeys
     .filter((d) => d.change > 0.15)
@@ -818,7 +867,7 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
                     />
                     {journey.rows.map((row, i) => {
                       const s = score(row)
-                      const y = mid - (s - 4.5) * 6
+                      const y = mid - (s - 4.5) * 7
                       const rawXPct = (x(i) / width) * 100
                       const rawYPct = (y / height) * 100
 
@@ -830,7 +879,7 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
                           r="9"
                           fill="transparent"
                           className="cursor-pointer"
-                          onMouseEnter={() =>
+                          onPointerEnter={() =>
                             setTooltip({
                               activeTrack: String(journey.uin),
                               xPct: Math.max(6, Math.min(94, rawXPct)),
@@ -846,7 +895,23 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
                                     : "center",
                             })
                           }
-                          onMouseLeave={() => setTooltip(null)}
+                          onPointerLeave={() => setTooltip(null)}
+                          onClick={() =>
+                            setTooltip({
+                              activeTrack: String(journey.uin),
+                              xPct: Math.max(6, Math.min(94, rawXPct)),
+                              yPct: Math.max(18, Math.min(86, rawYPct)),
+                              label: `Participant ${String(journey.uin).slice(-4)} · session ${
+                                row.sessionNumber
+                              } · ${s.toFixed(1)} / 9`,
+                              align:
+                                rawXPct < 25
+                                  ? "left"
+                                  : rawXPct > 75
+                                    ? "right"
+                                    : "center",
+                            })
+                          }
                         />
                       )
                     })}
@@ -955,7 +1020,7 @@ function OrbitalScore({
                         : "orbit-spoke cursor-pointer"
                     }
                     style={{ animationDelay: `${i * 70}ms` }}
-                    onMouseEnter={() => {
+                    onPointerEnter={() => {
                       const rawXPct = (x2 / width) * 100
                       const rawYPct = (y2 / height) * 100
 
@@ -972,7 +1037,24 @@ function OrbitalScore({
                               : "center",
                       })
                     }}
-                    onMouseLeave={() => setTooltip(null)}
+                    onPointerLeave={() => setTooltip(null)}
+                    onClick={() => {
+                      const rawXPct = (x2 / width) * 100
+                      const rawYPct = (y2 / height) * 100
+
+                      setTooltip({
+                        xPct: Math.max(8, Math.min(92, rawXPct)),
+                        yPct: Math.max(14, Math.min(86, rawYPct)),
+                        label: `${title} · score ${i + 1} · ${count} sessions`,
+                        color,
+                        align:
+                          rawXPct < 25
+                            ? "left"
+                            : rawXPct > 75
+                              ? "right"
+                              : "center",
+                      })
+                    }}
                   />
                   <text
                     x={cx + Math.cos(angle) * (r2 + 18)}
