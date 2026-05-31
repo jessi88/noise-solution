@@ -114,7 +114,16 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
         </p>
 
         {hasMeasured ? (
-          <div className="relative mt-4">
+          <div
+            className="relative mt-4"
+            onPointerDown={(e) => {
+              const target = e.target as HTMLElement
+
+              if (!target.closest("[data-tooltip-point]")) {
+                setTooltip(null)
+              }
+            }}
+          >
             <svg
               viewBox={`0 0 ${width} ${height}`}
               className="h-auto w-full rounded-3xl bg-black/20"
@@ -194,6 +203,7 @@ function ProgrammeWave({ rows }: ProgrammeWaveformProps) {
 
                       return (
                         <circle
+                          data-tooltip-point
                           key={`${series.key}-${row.session}`}
                           cx={x(i)}
                           cy={y}
@@ -496,7 +506,16 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
         </p>
 
         {hasMeasured ? (
-          <div className="relative mt-4">
+          <div
+            className="relative mt-4"
+            onPointerDown={(e) => {
+              const target = e.target as HTMLElement
+
+              if (!target.closest("[data-tooltip-point]")) {
+                setTooltip(null)
+              }
+            }}
+          >
             <svg
               viewBox={`0 0 ${width} ${height}`}
               className="h-auto w-full"
@@ -560,6 +579,7 @@ function VoiceConstellation({ rows }: ProgrammeWaveformProps) {
 
                 return (
                   <circle
+                    data-tooltip-point
                     key={`${d.UIN}-${d.ID}-${i}-${isInView}`}
                     cx={x(d.sessionNumber ?? 1)}
                     cy={y(s)}
@@ -841,7 +861,16 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
                   </p>
                 </div>
 
-                <div className="relative">
+                <div
+                  className="relative"
+                  onPointerDown={(e) => {
+                    const target = e.target as HTMLElement
+
+                    if (!target.closest("[data-tooltip-point]")) {
+                      setTooltip(null)
+                    }
+                  }}
+                >
                   <svg
                     viewBox={`0 0 ${width} ${height}`}
                     className="h-auto w-full"
@@ -873,6 +902,7 @@ function ParticipantTracks({ rows }: ProgrammeWaveformProps) {
 
                       return (
                         <circle
+                          data-tooltip-point
                           key={`${journey.uin}-${row.sessionNumber}-${i}`}
                           cx={x(i)}
                           cy={y}
@@ -987,7 +1017,16 @@ function OrbitalScore({
   return (
     <div ref={ref}>
       <SoundCard>
-        <div className="relative">
+        <div
+          className="relative"
+          onPointerDown={(e) => {
+            const target = e.target as HTMLElement
+
+            if (!target.closest("[data-tooltip-point]")) {
+              setTooltip(null)
+            }
+          }}
+        >
           <svg
             viewBox={`0 0 ${width} ${height}`}
             className="mx-auto h-auto w-full max-w-75"
@@ -1006,6 +1045,7 @@ function OrbitalScore({
               return (
                 <g key={i}>
                   <line
+                    data-tooltip-point
                     x1={x1}
                     y1={y1}
                     x2={x2}

@@ -41,7 +41,16 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
         Different patterns by referral sector
       </p>
 
-      <div className="relative mt-6 space-y-5">
+      <div
+        className="relative mt-6 space-y-5"
+        onPointerDown={(e) => {
+          const target = e.target as HTMLElement
+
+          if (!target.closest("[data-tooltip-point]")) {
+            setTooltip(null)
+          }
+        }}
+      >
         <div className="mb-5 hidden md:grid md:grid-cols-[150px_1fr] md:gap-5 lg:grid-cols-[170px_1fr]">
           <div />
 
@@ -70,6 +79,7 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
 
             <div className="space-y-2">
               <div
+                data-tooltip-point
                 className={
                   isInView
                     ? "sector-bar h-2 cursor-pointer rounded-full bg-acid hover:drop-shadow-[0_0_8px_rgba(190,255,0,0.8)]"
@@ -79,7 +89,7 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
                   width: `${Math.max(4, (d.confidence / 9) * 100)}%`,
                   animationDelay: `${index * 80}ms`,
                 }}
-                onMouseEnter={(e) =>
+                onPointerEnter={(e) =>
                   setTooltip({
                     x: e.clientX,
                     y: e.clientY,
@@ -87,17 +97,26 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
                     color: "var(--color-acid)",
                   })
                 }
-                onMouseLeave={() => setTooltip(null)}
+                onPointerLeave={() => setTooltip(null)}
+                onClick={(e) =>
+                  setTooltip({
+                    x: e.clientX,
+                    y: e.clientY,
+                    label: `${d.sector} · confidence · ${d.confidence.toFixed(1)} / 9`,
+                    color: "var(--color-acid)",
+                  })
+                }
               />
 
               <div
+                data-tooltip-point
                 className={
                   isInView
                     ? "sector-bar h-2 cursor-pointer rounded-full bg-violet hover:drop-shadow-[0_0_12px_rgba(167,139,250,1)]"
                     : "h-2 cursor-pointer rounded-full bg-violet hover:drop-shadow-[0_0_12px_rgba(167,139,250,1)]"
                 }
                 style={{ width: `${Math.max(4, (d.control / 9) * 100)}%` }}
-                onMouseEnter={(e) =>
+                onPointerEnter={(e) =>
                   setTooltip({
                     x: e.clientX,
                     y: e.clientY,
@@ -105,17 +124,26 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
                     color: "var(--color-violet)",
                   })
                 }
-                onMouseLeave={() => setTooltip(null)}
+                onPointerLeave={() => setTooltip(null)}
+                onClick={(e) =>
+                  setTooltip({
+                    x: e.clientX,
+                    y: e.clientY,
+                    label: `${d.sector} · control · ${d.control.toFixed(1)} / 9`,
+                    color: "var(--color-violet)",
+                  })
+                }
               />
 
               <div
+                data-tooltip-point
                 className={
                   isInView
                     ? "sector-bar h-2 cursor-pointer rounded-full bg-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
                     : "h-2 cursor-pointer rounded-full bg-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
                 }
                 style={{ width: `${Math.max(4, (d.connection / 9) * 100)}%` }}
-                onMouseEnter={(e) =>
+                onPointerEnter={(e) =>
                   setTooltip({
                     x: e.clientX,
                     y: e.clientY,
@@ -123,7 +151,15 @@ export default function SectorPatterns({ rows }: SectorPatternsProps) {
                     color: "var(--color-white)",
                   })
                 }
-                onMouseLeave={() => setTooltip(null)}
+                onPointerLeave={() => setTooltip(null)}
+                onClick={(e) =>
+                  setTooltip({
+                    x: e.clientX,
+                    y: e.clientY,
+                    label: `${d.sector} · connection · ${d.connection.toFixed(1)} / 9`,
+                    color: "var(--color-white)",
+                  })
+                }
               />
             </div>
           </div>

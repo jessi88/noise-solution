@@ -95,7 +95,16 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
       </p>
 
       {hasMeasured ? (
-        <div className="relative mt-5">
+        <div
+          className="relative mt-5"
+          onPointerDown={(e) => {
+            const target = e.target as HTMLElement
+
+            if (!target.closest("[data-tooltip-point]")) {
+              setTooltip(null)
+            }
+          }}
+        >
           <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full">
             {[1, 3, 5, 7, 9].map((t) => (
               <g key={t}>
@@ -154,6 +163,7 @@ export default function JourneyLineChart({ rows }: JourneyLineChartProps) {
 
                   {data.map((d) => (
                     <circle
+                      data-tooltip-point
                       key={`${key}-${d.session}`}
                       cx={x(d.session)}
                       cy={y(d.value)}
